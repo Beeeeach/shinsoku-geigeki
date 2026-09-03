@@ -203,6 +203,39 @@ nav a:hover {
 }
 
 
+/* ヘッダー右側のボタン群 */
+
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.staff-btn {
+    padding: 10px 16px;
+
+    background: transparent;
+    border: 1px solid rgba(154, 164, 170, 0.4);
+
+    color: #9aa4aa;
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+
+    border-radius: 3px;
+
+    transition: 0.25s;
+}
+
+.staff-btn:hover {
+    border-color: #65d8ff;
+    color: #65d8ff;
+}
+
+
 /* =========================================
    ヒーロー
 ========================================= */
@@ -1169,7 +1202,7 @@ footer {
     }
 
 
-    header .ticket-btn {
+    header .header-buttons {
         display: none;
     }
 
@@ -1241,13 +1274,17 @@ footer {
         <a href="#status">LIVE STATUS</a>
         <a href="#news">NEWS</a>
         <a href="#access">ACCESS</a>
+        <a href="./staff-links/index.html" style="color:#9aa4aa;">STAFF</a>
 
     </nav>
 
 
-    <a href="#status" class="ticket-btn">
-        リアルタイム状況を見る →
-    </a>
+    <div class="header-buttons">
+        <a href="./staff-links/index.html" class="staff-btn">STAFF</a>
+        <a href="#status" class="ticket-btn">
+            リアルタイム状況を見る →
+        </a>
+    </div>
 
 
     <div class="menu-toggle" onclick="toggleMenu()">
