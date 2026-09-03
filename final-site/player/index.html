@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>迅速迎撃 | プレイヤー端末</title>
+<style>
+  :root {
+    --od-black: #14171a;
+    --od-panel: #1c2024;
+    --od-olive: #4a5240;
+    --team-a: #d64545;
+    --team-b: #3b7fc4;
+    --warn: #e8b339;
+    --text-dim: #8a9088;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--od-black);
+    color: #eceee9;
+    font-family: "Segoe UI", "Hiragino Sans", sans-serif;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- 共通ヘッダー ---------- */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--od-panel);
+    border-bottom: 2px solid #2a2f33;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .status-bar .unit-tag {
+    font-weight: 700;
+    color: #eceee9;
+  }
+
+  /* ---------- 名前入力画面 ---------- */
+  #name-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 20px;
+  }
+  #name-screen .callsign-label {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  #name-input {
+    width: 100%;
+    max-width: 360px;
+    font-size: 22px;
+    padding: 14px 16px;
+    background: var(--od-panel);
+    border: 2px solid #2a2f33;
+    border-radius: 4px;
+    color: #eceee9;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+  #name-input:focus {
+    outline: none;
+    border-color: var(--warn);
+  }
+  #confirm-name {
+    width: 100%;
+    max-width: 360px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    background: var(--od-olive);
+    color: #eceee9;
+    border: none;
+    border-radius: 4px;
+  }
+  #confirm-name:active { filter: brightness(0.85); }
+
+  /* ---------- ゲーム画面 ---------- */
+  #game-screen {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+  }
+  #game-screen.active { display: flex; }
+
+  .player-info {
+    text-align: center;
+    padding: 18px 12px 8px;
+    flex-shrink: 0;
+  }
+  .player-info .callsign {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .player-info .rename-btn {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+
+  .match-status {
+    text-align: center;
+    padding: 6px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .match-status.playing { color: #7dc47d; }
+  .match-status.waiting { color: var(--warn); }
+  .match-status.finished { color: var(--text-dim); }
+
+  .timer {
+    text-align: center;
+    font-size: 44px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+
+  .hit-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  #hit-button {
+    width: 100%;
+    height: 100%;
+    max-height: 340px;
+    border-radius: 16px;
+    border: none;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: #fff;
+    background: linear-gradient(180deg, #c73838, #8e2222);
+    box-shadow: 0 6px 0 #5c1414, 0 8px 18px rgba(0,0,0,0.5);
+    transition: transform 0.05s, box-shadow 0.05s;
+  }
+  #hit-button:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #5c1414, 0 4px 10px rgba(0,0,0,0.5);
+  }
+  #hit-button:disabled {
+    background: #35383b;
+    box-shadow: 0 6px 0 #202224;
+    color: var(--text-dim);
+  }
+
+  .team-a #hit-button {
+    background: linear-gradient(180deg, #4a8fd6, #2a5c95);
+    box-shadow: 0 6px 0 #163a63, 0 8px 18px rgba(0,0,0,0.5);
+  }
+  .team-a #hit-button:active {
+    box-shadow: 0 0 0 #163a63, 0 4px 10px rgba(0,0,0,0.5);
+  }
+
+  .feedback-flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(232, 179, 57, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+  .feedback-flash.show { opacity: 1; }
+
+  .score-footer {
+    display: flex;
+    justify-content: space-around;
+    padding: 14px;
+    background: var(--od-panel);
+    border-top: 2px solid #2a2f33;
+    flex-shrink: 0;
+  }
+  .score-footer .team {
+    text-align: center;
+  }
+  .score-footer .team .label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+  }
+  .score-footer .team .score {
+    font-size: 28px;
+    font-weight: 900;
+  }
+  .score-footer .team.a .score { color: var(--team-a); }
+  .score-footer .team.b .score { color: var(--team-b); }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span>迅速迎撃 SUPPORT UNIT</span>
+  <span class="unit-tag" id="unit-tag">--</span>
+</div>
+
+<!-- 名前入力画面 -->
+<div id="name-screen">
+  <div class="callsign-label">コールサインを入力せよ</div>
+  <input id="name-input" type="text" maxlength="10" placeholder="ニックネーム">
+  <button id="confirm-name">出撃準備 OK</button>
+</div>
+
+<!-- ゲーム画面 -->
+<div id="game-screen">
+  <div class="player-info">
+    <div class="callsign" id="callsign-display">-</div>
+    <button class="rename-btn" id="rename-btn">名前を変更する</button>
+  </div>
+
+  <div class="match-status waiting" id="match-status">試合開始待ち</div>
+  <div class="timer" id="timer-display">--:--</div>
+
+  <div class="hit-area">
+    <button id="hit-button" disabled>撃たれた!</button>
+  </div>
+
+  <div class="score-footer">
+    <div class="team a">
+      <div class="label" id="team-a-label">チームA</div>
+      <div class="score" id="score-a">0</div>
+    </div>
+    <div class="team b">
+      <div class="label" id="team-b-label">チームB</div>
+      <div class="score" id="score-b">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="feedback-flash" id="flash"></div>
+
+<script type="module">
+import {
+  db, ref, onValue, set, runTransaction, ensurePlayerAuth
+} from "../shared/firebase-config.js";
+
+// ------------------------------------------------------------
+// URLパラメータから端末IDを取得(例: index.html?id=teamA-1)
+// ------------------------------------------------------------
+const params = new URLSearchParams(window.location.search);
+const unitId = params.get("id"); // 例: "teamA-1"
+
+if (!unitId || !/^team[AB]-[1-4]$/.test(unitId)) {
+  document.body.innerHTML =
+    '<div style="padding:40px;text-align:center;color:#e8b339;font-size:18px;">' +
+    "端末IDが正しく指定されていません。<br>URLに ?id=teamA-1 のようなパラメータが必要です。" +
+    "</div>";
+  throw new Error("invalid unit id");
+}
+
+const myTeam = unitId.startsWith("teamA") ? "A" : "B";
+const opponentTeam = myTeam === "A" ? "B" : "A";
+
+document.getElementById("unit-tag").textContent = unitId;
+document.body.classList.add(myTeam === "A" ? "team-a" : "team-b");
+
+const nameScreen = document.getElementById("name-screen");
+const gameScreen = document.getElementById("game-screen");
+const nameInput = document.getElementById("name-input");
+const confirmNameBtn = document.getElementById("confirm-name");
+const callsignDisplay = document.getElementById("callsign-display");
+const renameBtn = document.getElementById("rename-btn");
+const hitButton = document.getElementById("hit-button");
+const matchStatusEl = document.getElementById("match-status");
+const timerDisplay = document.getElementById("timer-display");
+const flash = document.getElementById("flash");
+const scoreAEl = document.getElementById("score-a");
+const scoreBEl = document.getElementById("score-b");
+const teamALabelEl = document.getElementById("team-a-label");
+const teamBLabelEl = document.getElementById("team-b-label");
+
+let currentMatchStatus = "waiting";
+let matchDuration = 120;
+let startTime = 0;
+let timerInterval = null;
+
+// ------------------------------------------------------------
+// 初期化: 匿名ログイン
+// ------------------------------------------------------------
+ensurePlayerAuth().catch((e) => {
+  alert("認証に失敗しました。ページを再読み込みしてください。\n" + e.message);
+});
+
+// ------------------------------------------------------------
+// プレイヤー名の表示/設定
+// ------------------------------------------------------------
+const playerNameRef = ref(db, `players/${unitId}/name`);
+
+onValue(playerNameRef, (snapshot) => {
+  const name = snapshot.val();
+  if (name) {
+    callsignDisplay.textContent = name;
+    nameScreen.style.display = "none";
+    gameScreen.classList.add("active");
+  } else {
+    nameScreen.style.display = "flex";
+    gameScreen.classList.remove("active");
+  }
+});
+
+function submitName() {
+  const name = nameInput.value.trim();
+  if (!name) {
+    nameInput.focus();
+    return;
+  }
+  set(playerNameRef, name);
+  nameInput.value = "";
+}
+
+confirmNameBtn.addEventListener("click", submitName);
+nameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") submitName();
+});
+
+renameBtn.addEventListener("click", () => {
+  set(playerNameRef, null);
+});
+
+// ------------------------------------------------------------
+// config(チーム名・試合時間)の購読
+// ------------------------------------------------------------
+onValue(ref(db, "config/teamNames"), (snap) => {
+  const names = snap.val();
+  if (names) {
+    teamALabelEl.textContent = names.A || "チームA";
+    teamBLabelEl.textContent = names.B || "チームB";
+  }
+});
+
+onValue(ref(db, "config/matchDuration"), (snap) => {
+  if (snap.val()) matchDuration = snap.val();
+});
+
+// ------------------------------------------------------------
+// 試合状態(status, startTime)の購読とタイマー表示
+// ------------------------------------------------------------
+onValue(ref(db, "match/status"), (snap) => {
+  currentMatchStatus = snap.val() || "waiting";
+  updateStatusDisplay();
+});
+
+onValue(ref(db, "match/startTime"), (snap) => {
+  startTime = snap.val() || 0;
+});
+
+function updateStatusDisplay() {
+  matchStatusEl.className = "match-status " + currentMatchStatus;
+  if (currentMatchStatus === "waiting") {
+    matchStatusEl.textContent = "試合開始待ち";
+    hitButton.disabled = true;
+    timerDisplay.textContent = "--:--";
+  } else if (currentMatchStatus === "playing") {
+    matchStatusEl.textContent = "戦闘中";
+    hitButton.disabled = false;
+  } else {
+    matchStatusEl.textContent = "試合終了";
+    hitButton.disabled = true;
+  }
+}
+
+// タイマーはクライアント側で計算(DB書き込みを増やさないため)
+function tickTimer() {
+  if (currentMatchStatus !== "playing" || !startTime) {
+    return;
+  }
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const remaining = Math.max(0, matchDuration - elapsed);
+  const min = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const sec = String(remaining % 60).padStart(2, "0");
+  timerDisplay.textContent = `${min}:${sec}`;
+
+  if (remaining <= 0) {
+    hitButton.disabled = true;
+  }
+}
+setInterval(tickTimer, 250);
+
+// ------------------------------------------------------------
+// 得点の購読
+// ------------------------------------------------------------
+onValue(ref(db, "match/score"), (snap) => {
+  const score = snap.val() || { A: 0, B: 0 };
+  scoreAEl.textContent = score.A ?? 0;
+  scoreBEl.textContent = score.B ?? 0;
+});
+
+// ------------------------------------------------------------
+// 「撃たれた!」ボタン: 相手チームの得点に+加算(トランザクション)
+// ------------------------------------------------------------
+hitButton.addEventListener("click", () => {
+  if (currentMatchStatus !== "playing") return;
+
+  hitButton.disabled = true;
+  setTimeout(() => {
+    if (currentMatchStatus === "playing") hitButton.disabled = false;
+  }, 600); // 連打防止のクールダウン
+
+  const scoreRef = ref(db, `match/score/${opponentTeam}`);
+  runTransaction(scoreRef, (current) => (current || 0) + 1);
+
+  // 視覚フィードバック
+  flash.classList.add("show");
+  if (navigator.vibrate) navigator.vibrate(80);
+  setTimeout(() => flash.classList.remove("show"), 150);
+});
+</script>
+</body>
+</html>
