@@ -840,6 +840,79 @@ section {
 
 
 /* =========================================
+   PLAYER ACCESS (会場設置端末専用リンク)
+========================================= */
+
+.player-access {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px dashed rgba(100, 200, 255, 0.2);
+}
+
+.player-access-note {
+    color: #71818a;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 24px;
+    line-height: 1.8;
+}
+
+.player-access-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.player-access-team {
+    background: rgba(10, 20, 30, 0.85);
+    border: 1px solid rgba(100, 200, 255, 0.18);
+    padding: 20px;
+    text-align: center;
+}
+
+.player-access-team-label {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    margin-bottom: 14px;
+}
+
+.player-access-team-label.team-a-label { color: #ff6b6b; }
+.player-access-team-label.team-b-label { color: #65d8ff; }
+
+.player-access-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.player-access-buttons a {
+    display: block;
+    padding: 12px 4px;
+    background: rgba(100, 220, 255, 0.08);
+    border: 1px solid rgba(100, 220, 255, 0.25);
+    color: #eceee9;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    transition: 0.25s;
+}
+
+.player-access-buttons a:hover {
+    background: rgba(100, 220, 255, 0.2);
+    border-color: #65d8ff;
+    box-shadow: 0 0 15px rgba(100, 220, 255, 0.25);
+}
+
+@media (max-width: 800px) {
+    .player-access-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================
    NEWS
 ========================================= */
 
@@ -1485,7 +1558,41 @@ footer {
 
     </div>
 
+
+    <div class="player-access reveal-up delay-2">
+
+        <p class="player-access-note">
+            ※ 以下は会場設置の端末専用リンクです。参加者ご自身のスマートフォン等からはご利用いただけません。
+        </p>
+
+        <div class="player-access-grid">
+
+            <div class="player-access-team">
+                <div class="player-access-team-label team-a-label">TEAM A</div>
+                <div class="player-access-buttons">
+                    <a href="./player/index.html?id=teamA-1">1番</a>
+                    <a href="./player/index.html?id=teamA-2">2番</a>
+                    <a href="./player/index.html?id=teamA-3">3番</a>
+                    <a href="./player/index.html?id=teamA-4">4番</a>
+                </div>
+            </div>
+
+            <div class="player-access-team">
+                <div class="player-access-team-label team-b-label">TEAM B</div>
+                <div class="player-access-buttons">
+                    <a href="./player/index.html?id=teamB-1">1番</a>
+                    <a href="./player/index.html?id=teamB-2">2番</a>
+                    <a href="./player/index.html?id=teamB-3">3番</a>
+                    <a href="./player/index.html?id=teamB-4">4番</a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
 </section>
+
 
 
 
