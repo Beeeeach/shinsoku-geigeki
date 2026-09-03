@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>神速の迎撃戦線 | 高田高校文化祭</title>
+
+<style>
+
+/* =========================================
+   基本設定
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family:
+        "Yu Gothic",
+        "YuGothic",
+        "Hiragino Kaku Gothic ProN",
+        sans-serif;
+
+    background: #05080d;
+    color: #ffffff;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================
+   背景
+========================================= */
+
+body::before {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at 80% 10%,
+            rgba(0, 160, 255, 0.13),
+            transparent 30%
+        ),
+
+        radial-gradient(
+            circle at 15% 80%,
+            rgba(255, 80, 0, 0.08),
+            transparent 25%
+        );
+
+    pointer-events: none;
+    z-index: -2;
+}
+
+
+/* グリッド */
+
+.grid-bg {
+    position: fixed;
+    inset: 0;
+
+    background-image:
+        linear-gradient(
+            rgba(100, 200, 255, 0.04) 1px,
+            transparent 1px
+        ),
+
+        linear-gradient(
+            90deg,
+            rgba(100, 200, 255, 0.04) 1px,
+            transparent 1px
+        );
+
+    background-size: 50px 50px;
+
+    pointer-events: none;
+    z-index: -1;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+header {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 75px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 5%;
+
+    background: rgba(5, 8, 13, 0.85);
+
+    backdrop-filter: blur(15px);
+
+    border-bottom:
+        1px solid rgba(100, 220, 255, 0.18);
+
+    z-index: 1000;
+}
+
+
+.logo {
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 21px;
+
+    font-weight: bold;
+
+    letter-spacing: 0.12em;
+}
+
+.logo span {
+    color: #65d8ff;
+}
+
+
+/* ナビ */
+
+nav {
+    display: flex;
+    gap: 32px;
+}
+
+nav a {
+    color: #c8d6dd;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    letter-spacing: 0.15em;
+
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: #65d8ff;
+
+    text-shadow:
+        0 0 12px #65d8ff;
+}
+
+
+/* チケットボタン */
+
+.ticket-btn {
+    padding: 13px 25px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #65d8ff,
+            #258ac2
+        );
+
+    color: #061018;
+
+    text-decoration: none;
+
+    font-weight: bold;
+
+    transition: 0.3s;
+
+    clip-path:
+        polygon(
+            0 0,
+            92% 0,
+            100% 50%,
+            92% 100%,
+            0 100%,
+            5% 50%
+        );
+}
+
+.ticket-btn:hover {
+    transform: scale(1.05);
+
+    box-shadow:
+        0 0 30px
+        rgba(100, 220, 255, 0.6);
+}
+
+
+/* =========================================
+   ヒーロー
+========================================= */
+
+.hero {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+
+    padding: 120px 10% 80px;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+
+/* 照準 */
+
+.crosshair {
+    position: absolute;
+
+    right: 8%;
+    top: 50%;
+
+    width: 420px;
+    height: 420px;
+
+    border:
+        2px solid rgba(100, 220, 255, 0.25);
+
+    border-radius: 50%;
+
+    transform: translateY(-50%);
+
+    animation:
+        pulse 3s infinite;
+
+    pointer-events: none;
+}
+
+.crosshair::before,
+.crosshair::after {
+    content: "";
+
+    position: absolute;
+
+    background:
+        rgba(100, 220, 255, 0.3);
+}
+
+.crosshair::before {
+    width: 2px;
+    height: 100%;
+
+    left: 50%;
+}
+
+.crosshair::after {
+    width: 100%;
+    height: 2px;
+
+    top: 50%;
+}
+
+
+/* ヒーローコンテンツ */
+
+.hero-content {
+    position: relative;
+
+    z-index: 2;
+
+    max-width: 850px;
+}
+
+.hero-sub {
+    color: #65d8ff;
+
+    font-size: 13px;
+
+    letter-spacing: 0.5em;
+
+    margin-bottom: 20px;
+
+    animation:
+        fadeUp 1s ease;
+}
+
+
+.hero h1 {
+    font-size:
+        clamp(60px, 10vw, 130px);
+
+    line-height: 1;
+
+    letter-spacing: 0.08em;
+
+    margin-bottom: 30px;
+
+    text-shadow:
+        0 0 40px
+        rgba(100, 220, 255, 0.25);
+
+    animation:
+        fadeUp 1.2s ease;
+}
+
+.hero h1 span {
+    color: #65d8ff;
+}
+
+
+.catch {
+    font-size:
+        clamp(22px, 3vw, 38px);
+
+    font-weight: bold;
+
+    letter-spacing: 0.12em;
+
+    margin-bottom: 20px;
+
+    animation:
+        fadeUp 1.4s ease;
+}
+
+
+.description {
+    color: #b4c5ce;
+
+    font-size: 17px;
+
+    line-height: 2;
+
+    margin-bottom: 40px;
+
+    animation:
+        fadeUp 1.6s ease;
+}
+
+
+/* メインボタン */
+
+.main-button {
+    display: inline-block;
+
+    padding: 20px 50px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #65d8ff,
+            #1c78b0
+        );
+
+    color: #061018;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    text-decoration: none;
+
+    letter-spacing: 0.1em;
+
+    border: none;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+
+    clip-path:
+        polygon(
+            0 0,
+            90% 0,
+            100% 50%,
+            90% 100%,
+            0 100%,
+            5% 50%
+        );
+}
+
+.main-button:hover {
+    transform: translateX(8px);
+
+    box-shadow:
+        0 0 35px
+        rgba(100, 220, 255, 0.7);
+}
+
+
+/* スピードライン */
+
+.speed-line {
+    position: absolute;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #65d8ff,
+            transparent
+        );
+
+    opacity: 0.4;
+
+    animation:
+        speed 3s linear infinite;
+}
+
+.line1 {
+    width: 500px;
+    top: 25%;
+    left: -500px;
+}
+
+.line2 {
+    width: 700px;
+    top: 70%;
+    left: -700px;
+
+    animation-delay: 1.2s;
+}
+
+
+/* =========================================
+   共通セクション
+========================================= */
+
+section {
+    padding: 120px 10%;
+}
+
+
+.section-title {
+    font-size:
+        clamp(35px, 5vw, 60px);
+
+    letter-spacing: 0.1em;
+
+    margin-bottom: 20px;
+}
+
+.section-title span {
+    color: #65d8ff;
+
+    font-size: 0.5em;
+
+    margin-right: 15px;
+}
+
+
+.section-text {
+    color: #9eafb9;
+
+    line-height: 2;
+
+    margin-bottom: 50px;
+
+    font-size: 16px;
+}
+
+
+/* =========================================
+   ABOUT
+========================================= */
+
+.about {
+    background:
+        linear-gradient(
+            180deg,
+            transparent,
+            rgba(10, 25, 40, 0.8)
+        );
+}
+
+
+.about-box {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 60px;
+
+    align-items: center;
+}
+
+
+.about-box h3 {
+    font-size: 32px;
+
+    margin-bottom: 25px;
+}
+
+
+.about-visual {
+    height: 350px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(20, 110, 170, 0.5),
+            rgba(5, 10, 20, 0.9)
+        );
+
+    border:
+        1px solid rgba(100, 220, 255, 0.3);
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.about-visual::before {
+    content: "TARGET";
+
+    color:
+        rgba(100, 220, 255, 0.2);
+
+    font-size: 55px;
+
+    font-weight: bold;
+
+    letter-spacing: 0.2em;
+}
+
+
+/* =========================================
+   GAME
+========================================= */
+
+.game-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 25px;
+}
+
+
+.game-card {
+    background:
+        rgba(10, 20, 30, 0.85);
+
+    border:
+        1px solid rgba(100, 200, 255, 0.18);
+
+    padding: 35px;
+
+    min-height: 280px;
+
+    transition: 0.35s;
+
+    position: relative;
+}
+
+.game-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 5px;
+    height: 100%;
+
+    background: #65d8ff;
+}
+
+
+.game-card:hover {
+    transform: translateY(-10px);
+
+    border-color: #65d8ff;
+
+    box-shadow:
+        0 0 35px
+        rgba(100, 220, 255, 0.12);
+}
+
+
+.game-number {
+    color: #65d8ff;
+
+    font-size: 13px;
+
+    letter-spacing: 0.2em;
+
+    margin-bottom: 20px;
+}
+
+.game-card h3 {
+    font-size: 26px;
+
+    margin-bottom: 15px;
+}
+
+.game-card p {
+    color: #a9bac3;
+
+    line-height: 1.9;
+}
+
+
+/* =========================================
+   RULES
+========================================= */
+
+.rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.rules-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+
+    background:
+        rgba(10, 20, 30, 0.85);
+
+    border:
+        1px solid rgba(100, 200, 255, 0.18);
+    border-left:
+        3px solid #65d8ff;
+
+    padding: 22px 26px;
+
+    transition: 0.3s;
+}
+
+.rules-item:hover {
+    border-color: rgba(100, 220, 255, 0.5);
+    box-shadow:
+        0 0 25px
+        rgba(100, 220, 255, 0.1);
+}
+
+.rules-icon {
+    flex-shrink: 0;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(100, 220, 255, 0.12);
+    color: #65d8ff;
+
+    font-weight: bold;
+    font-size: 16px;
+
+    border-radius: 50%;
+}
+
+.rules-item p {
+    color: #b4c5ce;
+    line-height: 1.9;
+    font-size: 15px;
+}
+
+
+/* =========================================
+   TRAILER
+========================================= */
+
+.trailer {
+    background:
+        linear-gradient(
+            135deg,
+            #061018,
+            #0b2638
+        );
+}
+
+.video-wrap {
+    position: relative;
+
+    width: 100%;
+    padding-top: 56.25%;
+
+    background: rgba(5, 10, 18, 0.85);
+    border: 1px solid rgba(100, 220, 255, 0.3);
+
+    overflow: hidden;
+}
+
+.video-wrap iframe {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    border: none;
+}
+
+.video-note {
+    color: #71818a;
+    font-size: 13px;
+    margin-top: 16px;
+}
+
+
+/* =========================================
+   LIVE STATUS
+========================================= */
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+
+    margin-bottom: 30px;
+}
+
+.status-box {
+    background:
+        rgba(10, 20, 30, 0.85);
+
+    border:
+        1px solid rgba(100, 200, 255, 0.18);
+
+    padding: 30px;
+    text-align: center;
+}
+
+.status-label {
+    color: #65d8ff;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    margin-bottom: 12px;
+}
+
+.status-value {
+    font-size: clamp(32px, 6vw, 46px);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+}
+
+.status-sub {
+    color: #71818a;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.match-badge {
+    display: inline-block;
+    margin-top: 12px;
+
+    padding: 5px 16px;
+
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+
+    border: 1px solid rgba(100, 220, 255, 0.3);
+    color: #65d8ff;
+}
+
+.match-badge.playing {
+    color: #7dffb0;
+    border-color: rgba(125, 255, 176, 0.4);
+}
+
+.match-badge.finished {
+    color: #71818a;
+    border-color: rgba(113, 129, 138, 0.4);
+}
+
+.score-battle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+
+    background:
+        rgba(10, 20, 30, 0.85);
+
+    border:
+        1px solid rgba(100, 200, 255, 0.18);
+
+    padding: 40px 20px;
+}
+
+.score-team {
+    text-align: center;
+}
+
+.score-team-name {
+    color: #b4c5ce;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+}
+
+.score-team-value {
+    font-size: clamp(48px, 10vw, 80px);
+    font-weight: bold;
+    line-height: 1;
+}
+
+.team-a .score-team-value { color: #ff6b6b; }
+.team-b .score-team-value { color: #65d8ff; }
+
+.score-vs {
+    color: #71818a;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+@media (max-width: 800px) {
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+    .score-battle {
+        gap: 20px;
+    }
+}
+
+
+/* =========================================
+   NEWS
+========================================= */
+
+.news-list {
+    border-top:
+        1px solid rgba(100, 200, 255, 0.2);
+}
+
+
+.news-item {
+    display: grid;
+
+    grid-template-columns:
+        160px 1fr;
+
+    gap: 30px;
+
+    padding: 25px 0;
+
+    border-bottom:
+        1px solid rgba(100, 200, 255, 0.15);
+}
+
+
+.news-date {
+    color: #65d8ff;
+
+    font-family: monospace;
+
+    font-size: 15px;
+}
+
+
+/* =========================================
+   ACCESS
+========================================= */
+
+.access-box {
+    padding: 50px;
+
+    background:
+        rgba(10, 20, 30, 0.85);
+
+    border:
+        1px solid rgba(100, 220, 255, 0.25);
+}
+
+
+.access-box h3 {
+    font-size: 30px;
+
+    margin-bottom: 25px;
+}
+
+
+.access-box p {
+    color: #b1c2ca;
+
+    font-size: 17px;
+
+    line-height: 2.2;
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+footer {
+    padding: 60px 10%;
+
+    text-align: center;
+
+    border-top:
+        1px solid rgba(100, 200, 255, 0.15);
+
+    color: #71818a;
+}
+
+
+/* =========================================
+   スクロールアニメーション
+========================================= */
+
+/*
+  最初は見えない状態にする
+*/
+
+.reveal {
+    opacity: 0;
+
+    transform:
+        translateX(-80px);
+
+    transition:
+        opacity 0.8s ease,
+        transform 0.8s ease;
+}
+
+
+/*
+  右から登場
+*/
+
+.reveal-right {
+    opacity: 0;
+
+    transform:
+        translateX(80px);
+
+    transition:
+        opacity 0.8s ease,
+        transform 0.8s ease;
+}
+
+
+/*
+  下から登場
+*/
+
+.reveal-up {
+    opacity: 0;
+
+    transform:
+        translateY(60px);
+
+    transition:
+        opacity 0.8s ease,
+        transform 0.8s ease;
+}
+
+
+/*
+  画面に入ったら表示
+*/
+
+.reveal.active,
+.reveal-right.active,
+.reveal-up.active {
+    opacity: 1;
+
+    transform:
+        translate(0, 0);
+}
+
+
+/*
+  カードを順番に表示する
+*/
+
+.delay-1 {
+    transition-delay: 0.1s;
+}
+
+.delay-2 {
+    transition-delay: 0.25s;
+}
+
+.delay-3 {
+    transition-delay: 0.4s;
+}
+
+
+/* =========================================
+   アニメーション
+========================================= */
+
+@keyframes fadeUp {
+
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+@keyframes pulse {
+
+    0%, 100% {
+        transform:
+            translateY(-50%)
+            scale(1);
+
+        opacity: 0.3;
+    }
+
+    50% {
+        transform:
+            translateY(-50%)
+            scale(1.08);
+
+        opacity: 0.7;
+    }
+}
+
+
+@keyframes speed {
+
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(200vw);
+    }
+}
+
+
+/* =========================================
+   スマホ対応
+========================================= */
+
+.menu-toggle {
+    display: none;
+
+    font-size: 26px;
+
+    cursor: pointer;
+}
+
+
+@media (max-width: 800px) {
+
+    nav {
+        display: none;
+
+        position: absolute;
+
+        top: 75px;
+        left: 0;
+
+        width: 100%;
+
+        flex-direction: column;
+
+        background: #081018;
+
+        padding: 30px;
+    }
+
+
+    nav.active {
+        display: flex;
+    }
+
+
+    .menu-toggle {
+        display: block;
+    }
+
+
+    header .ticket-btn {
+        display: none;
+    }
+
+
+    .hero {
+        padding:
+            120px 7% 80px;
+    }
+
+
+    section {
+        padding:
+            90px 7%;
+    }
+
+
+    .crosshair {
+        width: 280px;
+        height: 280px;
+
+        right: -100px;
+
+        opacity: 0.5;
+    }
+
+
+    .about-box,
+    .game-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .news-item {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+
+    .access-box {
+        padding: 30px;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="grid-bg"></div>
+
+
+<!-- ================= HEADER ================= -->
+
+<header>
+
+    <a href="#" class="logo">
+        神速の<span>迎撃戦線</span>
+    </a>
+
+
+    <nav id="nav">
+
+        <a href="#about">ABOUT</a>
+        <a href="#game">GAME</a>
+        <a href="#rules">RULES</a>
+        <a href="#trailer">TRAILER</a>
+        <a href="#status">LIVE STATUS</a>
+        <a href="#news">NEWS</a>
+        <a href="#access">ACCESS</a>
+
+    </nav>
+
+
+    <a href="#status" class="ticket-btn">
+        リアルタイム状況を見る →
+    </a>
+
+
+    <div class="menu-toggle" onclick="toggleMenu()">
+        ☰
+    </div>
+
+</header>
+
+
+
+<!-- ================= HERO ================= -->
+
+<section class="hero">
+
+    <div class="crosshair"></div>
+
+    <div class="speed-line line1"></div>
+    <div class="speed-line line2"></div>
+
+
+    <div class="hero-content">
+
+        <p class="hero-sub">
+            MOBILE SHOOTING ATTRACTION
+        </p>
+
+
+        <h1>
+            神速の<br>
+            <span>迎撃戦線</span>
+        </h1>
+
+
+        <p class="catch">
+            動け。狙え。撃ち抜け。
+        </p>
+
+
+        <p class="description">
+
+            台車に乗り、戦場を駆け抜けろ。<br>
+
+            次々と現れるターゲットを狙い、
+            限られた時間の中で最高得点を目指せ。
+
+        </p>
+
+
+        <a href="#status" class="main-button">
+            リアルタイム状況を見る →
+        </a>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= ABOUT ================= -->
+
+<section id="about" class="about">
+
+    <h2 class="section-title reveal">
+        <span>01</span>ABOUT
+    </h2>
+
+
+    <p class="section-text reveal delay-1">
+        神速の迎撃戦線とは？
+    </p>
+
+
+    <div class="about-box">
+
+        <div class="reveal">
+
+            <h3>
+                文化祭史上、最も速い戦場へ。
+            </h3>
+
+
+            <p class="section-text">
+
+                「神速の迎撃戦線」は、
+                台車に乗りながらターゲットを狙う
+                シューティングアトラクションです。
+
+                <br><br>
+
+                スピード、判断力、そして正確なエイム。
+
+                <br>
+
+                すべてを駆使して、
+                ハイスコアを目指せ。
+
+            </p>
+
+        </div>
+
+
+        <div class="about-visual reveal-right"></div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= GAME ================= -->
+
+<section id="game">
+
+    <h2 class="section-title reveal">
+        <span>02</span>GAME SYSTEM
+    </h2>
+
+
+    <p class="section-text reveal delay-1">
+        ルールはシンプル。しかし、攻略は簡単ではない。
+    </p>
+
+
+    <div class="game-grid">
+
+
+        <div class="game-card reveal-up delay-1">
+
+            <p class="game-number">
+                SYSTEM 01
+            </p>
+
+            <h3>RIDE</h3>
+
+            <p>
+                台車に乗り、コースを進む。
+                動きながら戦うことで、
+                狙いを定める難しさが増していく。
+            </p>
+
+        </div>
+
+
+
+        <div class="game-card reveal-up delay-2">
+
+            <p class="game-number">
+                SYSTEM 02
+            </p>
+
+            <h3>AIM</h3>
+
+            <p>
+                次々と現れるターゲットを
+                素早く発見し、
+                正確に狙え。
+            </p>
+
+        </div>
+
+
+
+        <div class="game-card reveal-up delay-3">
+
+            <p class="game-number">
+                SYSTEM 03
+            </p>
+
+            <h3>SCORE</h3>
+
+            <p>
+                多くのターゲットを撃ち抜き、
+                最高得点を目指せ。
+                あなたは戦場を制覇できるか。
+            </p>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= RULES ================= -->
+
+<section id="rules">
+
+    <h2 class="section-title reveal">
+        <span>03</span>RULES
+    </h2>
+
+
+    <p class="section-text reveal delay-1">
+        参加する前に、必ず目を通してほしい注意事項。
+    </p>
+
+
+    <div class="rules-list">
+
+        <div class="rules-item reveal-up delay-1">
+            <span class="rules-icon">!</span>
+            <p>会場内でのお怪我・トラブルについて、スタッフの指示に必ず従ってください。</p>
+        </div>
+
+        <div class="rules-item reveal-up delay-1">
+            <span class="rules-icon">!</span>
+            <p>展示中の機材（タブレット・的など）には触れず、スタッフの案内に従って操作してください。</p>
+        </div>
+
+        <div class="rules-item reveal-up delay-2">
+            <span class="rules-icon">!</span>
+            <p>混雑状況により、体験時間を制限させていただく場合があります。</p>
+        </div>
+
+        <div class="rules-item reveal-up delay-2">
+            <span class="rules-icon">!</span>
+            <p>ゲーム中の写真・動画撮影は、他のお客様の映り込みにご配慮ください。</p>
+        </div>
+
+        <div class="rules-item reveal-up delay-3">
+            <span class="rules-icon">!</span>
+            <p>体調に不安のある方は無理をせず、スタッフまでお申し出ください。</p>
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= TRAILER ================= -->
+
+<section id="trailer" class="trailer">
+
+    <h2 class="section-title reveal">
+        <span>04</span>TRAILER
+    </h2>
+
+
+    <p class="section-text reveal delay-1">
+        戦場の空気を、映像で先取りせよ。
+    </p>
+
+
+    <div class="video-wrap reveal-up">
+        <!-- YouTube等の限定公開URLに差し替えてください -->
+        <iframe
+            src="https://www.youtube.com/embed/VIDEO_ID_HERE"
+            title="ルール紹介動画"
+            allowfullscreen
+        ></iframe>
+    </div>
+
+    <p class="video-note">
+        ※ 動画が表示されない場合は、受付スタッフまでお声がけください。
+    </p>
+
+</section>
+
+
+
+<!-- ================= LIVE STATUS ================= -->
+
+<section id="status" class="status-section">
+
+    <h2 class="section-title reveal">
+        <span>05</span>LIVE STATUS
+    </h2>
+
+
+    <p class="section-text reveal delay-1">
+        戦況は、いまこの瞬間も動いている。
+    </p>
+
+
+    <div class="status-grid reveal-up">
+
+        <div class="status-box">
+            <div class="status-label">現在の待ち人数</div>
+            <div class="status-value" id="queue-count">-</div>
+            <div class="status-sub" id="queue-eta">目安待ち時間を計算中…</div>
+        </div>
+
+        <div class="status-box">
+            <div class="status-label">試合番号</div>
+            <div class="status-value" id="match-number">-</div>
+            <div class="match-badge" id="match-badge">-</div>
+        </div>
+
+    </div>
+
+
+    <div class="score-battle reveal-up delay-1">
+
+        <div class="score-team team-a">
+            <div class="score-team-name" id="team-a-name">チームA</div>
+            <div class="score-team-value" id="score-a">0</div>
+        </div>
+
+        <div class="score-vs">VS</div>
+
+        <div class="score-team team-b">
+            <div class="score-team-name" id="team-b-name">チームB</div>
+            <div class="score-team-value" id="score-b">0</div>
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= NEWS ================= -->
+
+<section id="news">
+
+    <h2 class="section-title reveal">
+        <span>06</span>NEWS
+    </h2>
+
+
+    <div class="news-list">
+
+
+        <div class="news-item reveal">
+
+            <div class="news-date">
+                2026.09.03
+            </div>
+
+            <div>
+                「神速の迎撃戦線」公式サイトを公開しました。
+            </div>
+
+        </div>
+
+
+
+        <div class="news-item reveal">
+
+            <div class="news-date">
+                2026.09.03
+            </div>
+
+            <div>
+                前売りチケットを80円で販売開始しました。
+            </div>
+
+        </div>
+
+
+
+        <div class="news-item reveal">
+
+            <div class="news-date">
+                2026.09.16
+            </div>
+
+            <div>
+                高田高校文化祭にて開催！
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= ACCESS ================= -->
+
+<section id="access">
+
+    <h2 class="section-title reveal">
+        <span>07</span>ACCESS
+    </h2>
+
+
+    <div class="access-box reveal-up">
+
+        <h3>
+            神速の迎撃戦線
+        </h3>
+
+
+        <p>
+
+            📅 開催日：9月16日
+
+            <br>
+
+            📍 場所：高田高校 5号館4階 D組教室
+
+            <br>
+
+            🎯 台車に乗って、ターゲットを撃ち抜け！
+
+        </p>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <h3 style="color:white; margin-bottom:15px;">
+        神速の迎撃戦線
+    </h3>
+
+
+    <p>
+        RIDE. AIM. BREAK THROUGH.
+    </p>
+
+
+    <br>
+
+
+    <p>
+        © 2026 高田高校文化祭
+    </p>
+
+</footer>
+
+
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+
+/* スマホメニュー */
+
+function toggleMenu() {
+
+    const nav =
+        document.getElementById("nav");
+
+    nav.classList.toggle("active");
+
+}
+
+
+/* =========================================
+   スクロールアニメーション
+
+   要素が画面に入った瞬間に
+   activeクラスを追加する
+========================================= */
+
+const observer = new IntersectionObserver(
+
+    function(entries) {
+
+        entries.forEach(function(entry) {
+
+            if (entry.isIntersecting) {
+
+                entry.target.classList.add("active");
+
+            }
+
+        });
+
+    },
+
+    {
+        threshold: 0.15
+    }
+
+);
+
+
+/* アニメーションさせる要素を取得 */
+
+const revealElements = document.querySelectorAll(
+
+    ".reveal, .reveal-right, .reveal-up"
+
+);
+
+
+/* すべて監視 */
+
+revealElements.forEach(function(element) {
+
+    observer.observe(element);
+
+});
+
+</script>
+
+
+<!-- ================= LIVE STATUS 連携(Firebase) ================= -->
+<script type="module">
+import { db, ref, onValue } from "./shared/firebase-config.js";
+
+let waitTimePerPerson = 30;
+let currentQueueCount = 0;
+
+// 待ち人数(閲覧専用)
+onValue(ref(db, "config/waitTimePerPerson"), (snap) => {
+    if (snap.val()) {
+        waitTimePerPerson = snap.val();
+        updateEta();
+    }
+});
+
+onValue(ref(db, "queue/count"), (snap) => {
+    currentQueueCount = snap.val() || 0;
+    document.getElementById("queue-count").textContent = currentQueueCount;
+    updateEta();
+});
+
+function updateEta() {
+    const totalSeconds = currentQueueCount * waitTimePerPerson;
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    document.getElementById("queue-eta").textContent = `目安待ち時間: ${min}分${sec}秒`;
+}
+
+// チーム名
+onValue(ref(db, "config/teamNames"), (snap) => {
+    const names = snap.val();
+    if (names) {
+        document.getElementById("team-a-name").textContent = names.A || "チームA";
+        document.getElementById("team-b-name").textContent = names.B || "チームB";
+    }
+});
+
+// 得点
+onValue(ref(db, "match/score"), (snap) => {
+    const score = snap.val() || { A: 0, B: 0 };
+    document.getElementById("score-a").textContent = score.A ?? 0;
+    document.getElementById("score-b").textContent = score.B ?? 0;
+});
+
+// 試合番号・状態
+onValue(ref(db, "match/matchNumber"), (snap) => {
+    document.getElementById("match-number").textContent = "第" + (snap.val() || 1) + "試合";
+});
+
+onValue(ref(db, "match/status"), (snap) => {
+    const status = snap.val() || "waiting";
+    const badge = document.getElementById("match-badge");
+    badge.className = "match-badge " + status;
+    badge.textContent =
+        status === "waiting" ? "開始待ち" :
+        status === "playing" ? "試合中" : "試合終了";
+});
+</script>
+
+
+</body>
+</html>

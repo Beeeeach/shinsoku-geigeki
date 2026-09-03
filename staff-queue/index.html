@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迅速迎撃 | 受付コンソール</title>
+<style>
+  :root {
+    --od-black: #14171a;
+    --od-panel: #1c2024;
+    --od-panel2: #22262a;
+    --od-olive: #4a5240;
+    --warn: #e8b339;
+    --danger: #c73838;
+    --text-dim: #8a9088;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--od-black);
+    color: #eceee9;
+    font-family: "Segoe UI", "Hiragino Sans", sans-serif;
+    min-height: 100vh;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--od-panel);
+    border-bottom: 2px solid #2a2f33;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+  }
+  .status-bar .role-tag { font-weight: 700; color: var(--warn); }
+  #logout-btn {
+    background: none;
+    border: 1px solid #3a3f43;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ---------- ログイン画面 ---------- */
+  #login-screen {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+  }
+  #login-screen h1 {
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  #login-screen input {
+    width: 100%;
+    max-width: 320px;
+    padding: 12px 14px;
+    background: var(--od-panel);
+    border: 2px solid #2a2f33;
+    border-radius: 4px;
+    color: #eceee9;
+    font-size: 16px;
+  }
+  #login-screen input:focus { outline: none; border-color: var(--warn); }
+  #login-btn {
+    width: 100%;
+    max-width: 320px;
+    padding: 14px;
+    background: var(--od-olive);
+    border: none;
+    border-radius: 4px;
+    color: #eceee9;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  #login-error { color: var(--danger); font-size: 13px; min-height: 18px; }
+
+  /* ---------- メイン画面 ---------- */
+  #main-screen {
+    display: none;
+    padding: 24px;
+    max-width: 480px;
+    margin: 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  #main-screen.active { display: flex; }
+
+  .queue-panel {
+    background: var(--od-panel);
+    border: 1px solid #2a2f33;
+    border-radius: 12px;
+    padding: 32px 24px;
+    width: 100%;
+    text-align: center;
+  }
+  .queue-panel h2 {
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .queue-count {
+    font-size: 88px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--warn);
+  }
+  .queue-unit { font-size: 16px; color: var(--text-dim); margin-top: 4px; }
+  .queue-eta {
+    margin-top: 18px;
+    font-size: 18px;
+    color: #eceee9;
+    background: var(--od-panel2);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .queue-eta .eta-value { font-weight: 900; color: var(--warn); }
+
+  .queue-buttons {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+  }
+  .queue-buttons button {
+    flex: 1;
+    height: 90px;
+    border: none;
+    border-radius: 12px;
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+  }
+  #minus-btn {
+    background: linear-gradient(180deg, #4a5a6b, #2f3a45);
+    box-shadow: 0 5px 0 #1c2329;
+  }
+  #minus-btn:active { transform: translateY(5px); box-shadow: none; }
+  #plus-btn {
+    background: linear-gradient(180deg, #c78a2f, #91621d);
+    box-shadow: 0 5px 0 #5c3f13;
+  }
+  #plus-btn:active { transform: translateY(5px); box-shadow: none; }
+
+  #reset-queue-btn {
+    background: none;
+    border: 1px solid #3a3f43;
+    color: var(--text-dim);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .config-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span>迅速迎撃 <span class="role-tag">受付コンソール</span></span>
+  <button id="logout-btn" style="display:none;">ログアウト</button>
+</div>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <h1>スタッフ認証</h1>
+  <input id="email-input" type="email" placeholder="メールアドレス" autocomplete="username">
+  <input id="password-input" type="password" placeholder="パスワード" autocomplete="current-password">
+  <button id="login-btn">ログイン</button>
+  <div id="login-error"></div>
+</div>
+
+<!-- メイン画面 -->
+<div id="main-screen">
+
+  <div class="queue-panel">
+    <h2>現在の待ち人数</h2>
+    <div class="queue-count" id="queue-count">0</div>
+    <div class="queue-unit">人待ち</div>
+    <div class="queue-eta">
+      目安待ち時間: <span class="eta-value" id="queue-eta">0分0秒</span>
+    </div>
+  </div>
+
+  <div class="queue-buttons">
+    <button id="minus-btn">-1</button>
+    <button id="plus-btn">+1</button>
+  </div>
+
+  <button id="reset-queue-btn">待ち人数を0にリセット</button>
+
+  <div class="config-note" id="config-note">1人あたり30秒として計算しています</div>
+
+</div>
+
+<script type="module">
+import {
+  db, auth, ref, get, onValue, set, runTransaction,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "../shared/firebase-config.js";
+
+const loginScreen = document.getElementById("login-screen");
+const mainScreen = document.getElementById("main-screen");
+const emailInput = document.getElementById("email-input");
+const passwordInput = document.getElementById("password-input");
+const loginBtn = document.getElementById("login-btn");
+const loginError = document.getElementById("login-error");
+const logoutBtn = document.getElementById("logout-btn");
+
+const queueCountEl = document.getElementById("queue-count");
+const queueEtaEl = document.getElementById("queue-eta");
+const configNoteEl = document.getElementById("config-note");
+const minusBtn = document.getElementById("minus-btn");
+const plusBtn = document.getElementById("plus-btn");
+const resetQueueBtn = document.getElementById("reset-queue-btn");
+
+let waitTimePerPerson = 30;
+
+// ------------------------------------------------------------
+// 認証状態の監視
+// ------------------------------------------------------------
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const roleSnap = await get(ref(db, `roles/${user.uid}`));
+    const role = roleSnap.val();
+    if (role === "staff_queue" || role === "owner") {
+      loginScreen.style.display = "none";
+      mainScreen.classList.add("active");
+      logoutBtn.style.display = "inline-block";
+    } else {
+      loginError.textContent = "このアカウントには受付権限がありません。";
+      await signOut(auth);
+    }
+  } else {
+    loginScreen.style.display = "flex";
+    mainScreen.classList.remove("active");
+    logoutBtn.style.display = "none";
+  }
+});
+
+loginBtn.addEventListener("click", async () => {
+  loginError.textContent = "";
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  if (!email || !password) {
+    loginError.textContent = "メールアドレスとパスワードを入力してください。";
+    return;
+  }
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    loginError.textContent = "ログインに失敗しました。入力内容を確認してください。";
+  }
+});
+
+logoutBtn.addEventListener("click", () => signOut(auth));
+
+// ------------------------------------------------------------
+// config(待ち時間換算)の購読
+// ------------------------------------------------------------
+onValue(ref(db, "config/waitTimePerPerson"), (snap) => {
+  if (snap.val()) {
+    waitTimePerPerson = snap.val();
+    configNoteEl.textContent = `1人あたり${waitTimePerPerson}秒として計算しています`;
+    updateEtaDisplay(Number(queueCountEl.textContent));
+  }
+});
+
+// ------------------------------------------------------------
+// 待ち人数の購読・表示
+// ------------------------------------------------------------
+onValue(ref(db, "queue/count"), (snap) => {
+  const count = snap.val() || 0;
+  queueCountEl.textContent = count;
+  updateEtaDisplay(count);
+});
+
+function updateEtaDisplay(count) {
+  const totalSeconds = count * waitTimePerPerson;
+  const min = Math.floor(totalSeconds / 60);
+  const sec = totalSeconds % 60;
+  queueEtaEl.textContent = `${min}分${sec}秒`;
+}
+
+// ------------------------------------------------------------
+// ±1操作・リセット
+// ------------------------------------------------------------
+const queueRef = ref(db, "queue/count");
+
+minusBtn.addEventListener("click", () => {
+  runTransaction(queueRef, (current) => Math.max(0, (current || 0) - 1));
+});
+
+plusBtn.addEventListener("click", () => {
+  runTransaction(queueRef, (current) => (current || 0) + 1);
+});
+
+resetQueueBtn.addEventListener("click", () => {
+  if (!confirm("待ち人数を0にリセットします。よろしいですか?")) return;
+  set(queueRef, 0);
+});
+</script>
+</body>
+</html>
