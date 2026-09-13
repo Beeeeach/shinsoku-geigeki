@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迅速迎撃 | オーナーコンソール</title>
+<style>
+  :root {
+    --od-black: #14171a;
+    --od-panel: #1c2024;
+    --od-panel2: #22262a;
+    --od-olive: #4a5240;
+    --team-a: #d64545;
+    --team-b: #3b7fc4;
+    --warn: #e8b339;
+    --danger: #c73838;
+    --text-dim: #8a9088;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--od-black);
+    color: #eceee9;
+    font-family: "Segoe UI", "Hiragino Sans", sans-serif;
+    min-height: 100vh;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--od-panel);
+    border-bottom: 2px solid #2a2f33;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+  }
+  .status-bar .role-tag { font-weight: 700; color: var(--warn); }
+  #logout-btn {
+    background: none;
+    border: 1px solid #3a3f43;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ---------- ログイン画面 ---------- */
+  #login-screen {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+  }
+  #login-screen h1 {
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  #login-screen input {
+    width: 100%;
+    max-width: 320px;
+    padding: 12px 14px;
+    background: var(--od-panel);
+    border: 2px solid #2a2f33;
+    border-radius: 4px;
+    color: #eceee9;
+    font-size: 16px;
+  }
+  #login-screen input:focus { outline: none; border-color: var(--warn); }
+  #login-btn {
+    width: 100%;
+    max-width: 320px;
+    padding: 14px;
+    background: var(--od-olive);
+    border: none;
+    border-radius: 4px;
+    color: #eceee9;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  #login-error { color: var(--danger); font-size: 13px; min-height: 18px; }
+
+  /* ---------- メイン画面 ---------- */
+  #main-screen { display: none; padding: 16px; max-width: 720px; margin: 0 auto; }
+  #main-screen.active { display: block; }
+
+  .panel {
+    background: var(--od-panel);
+    border: 1px solid #2a2f33;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .field-row label {
+    font-size: 14px;
+    flex-shrink: 0;
+    min-width: 130px;
+  }
+  .field-row input {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--od-panel2);
+    border: 1px solid #2a2f33;
+    border-radius: 4px;
+    color: #eceee9;
+    font-size: 15px;
+    min-width: 0;
+  }
+  .field-row .unit { font-size: 13px; color: var(--text-dim); flex-shrink: 0; }
+
+  .target-edit-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+    background: var(--od-panel2);
+    padding: 10px;
+    border-radius: 6px;
+  }
+  .target-edit-row input[type="text"] { flex: 2; }
+  .target-edit-row input[type="number"] { flex: 1; }
+  .target-edit-row input {
+    padding: 8px 10px;
+    background: var(--od-panel);
+    border: 1px solid #2a2f33;
+    border-radius: 4px;
+    color: #eceee9;
+    font-size: 14px;
+  }
+  .target-edit-row .remove-target-btn {
+    background: none;
+    border: 1px solid #4a2020;
+    color: var(--danger);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  #add-target-btn {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px dashed #3a3f43;
+    color: var(--text-dim);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--od-olive);
+    border: none;
+    border-radius: 6px;
+    color: #eceee9;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-top: 8px;
+  }
+
+  .danger-zone {
+    border-color: #4a2020;
+  }
+  .danger-zone h2 { color: var(--danger); }
+  .danger-btn {
+    width: 100%;
+    padding: 12px;
+    background: none;
+    border: 1px solid #4a2020;
+    color: var(--danger);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--od-panel2);
+    border: 1px solid #3a3f43;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span>迅速迎撃 <span class="role-tag">オーナーコンソール</span></span>
+  <a href="../staff-links/index.html" style="color:var(--text-dim);font-size:12px;text-decoration:underline;">スタッフリンク集に戻る</a>
+</div>
+
+<!-- メイン画面 -->
+<div id="main-screen" class="active">
+
+  <div class="panel">
+    <h2>試合ルール設定</h2>
+    <div class="field-row">
+      <label for="match-duration-input">試合時間</label>
+      <input type="number" id="match-duration-input" min="10" step="10">
+      <span class="unit">秒</span>
+    </div>
+    <div class="field-row">
+      <label for="wait-time-input">待ち時間換算</label>
+      <input type="number" id="wait-time-input" min="1" step="1">
+      <span class="unit">秒 / 人</span>
+    </div>
+    <button class="save-btn" id="save-rules-btn">試合ルールを保存</button>
+  </div>
+
+  <div class="panel">
+    <h2>チーム名設定</h2>
+    <div class="field-row">
+      <label for="team-a-input">チームA 名称</label>
+      <input type="text" id="team-a-input">
+    </div>
+    <div class="field-row">
+      <label for="team-b-input">チームB 名称</label>
+      <input type="text" id="team-b-input">
+    </div>
+    <button class="save-btn" id="save-teams-btn">チーム名を保存</button>
+  </div>
+
+  <div class="panel">
+    <h2>的の種類と点数</h2>
+    <div id="target-edit-list"><!-- JSで動的生成 --></div>
+    <button id="add-target-btn">+ 的を追加</button>
+    <button class="save-btn" id="save-targets-btn">的の設定を保存</button>
+  </div>
+
+  <div class="panel danger-zone">
+    <h2>危険な操作</h2>
+    <button class="danger-btn" id="full-reset-btn">試合・得点・待ち人数をすべて初期化(第1試合に戻す)</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import {
+  db, ref, get, onValue, set, update, requireStaffGate
+} from "../shared/firebase-config.js";
+
+// staff-links の合言葉ゲートを通過していなければリダイレクト
+requireStaffGate();
+
+const toast = document.getElementById("toast");
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1600);
+}
+
+// ------------------------------------------------------------
+// 試合ルール(試合時間・待ち時間換算)
+// ------------------------------------------------------------
+const matchDurationInput = document.getElementById("match-duration-input");
+const waitTimeInput = document.getElementById("wait-time-input");
+
+onValue(ref(db, "config/matchDuration"), (snap) => {
+  if (snap.val() && document.activeElement !== matchDurationInput) {
+    matchDurationInput.value = snap.val();
+  }
+});
+onValue(ref(db, "config/waitTimePerPerson"), (snap) => {
+  if (snap.val() && document.activeElement !== waitTimeInput) {
+    waitTimeInput.value = snap.val();
+  }
+});
+
+document.getElementById("save-rules-btn").addEventListener("click", async () => {
+  const duration = Number(matchDurationInput.value);
+  const waitTime = Number(waitTimeInput.value);
+  if (!duration || duration < 10) { showToast("試合時間は10秒以上で入力してください"); return; }
+  if (!waitTime || waitTime < 1) { showToast("待ち時間換算は1秒以上で入力してください"); return; }
+  await update(ref(db, "config"), {
+    matchDuration: duration,
+    waitTimePerPerson: waitTime
+  });
+  showToast("試合ルールを保存しました");
+});
+
+// ------------------------------------------------------------
+// チーム名
+// ------------------------------------------------------------
+const teamAInput = document.getElementById("team-a-input");
+const teamBInput = document.getElementById("team-b-input");
+
+onValue(ref(db, "config/teamNames"), (snap) => {
+  const names = snap.val();
+  if (names) {
+    if (document.activeElement !== teamAInput) teamAInput.value = names.A || "";
+    if (document.activeElement !== teamBInput) teamBInput.value = names.B || "";
+  }
+});
+
+document.getElementById("save-teams-btn").addEventListener("click", async () => {
+  const nameA = teamAInput.value.trim() || "チームA";
+  const nameB = teamBInput.value.trim() || "チームB";
+  await set(ref(db, "config/teamNames"), { A: nameA, B: nameB });
+  showToast("チーム名を保存しました");
+});
+
+// ------------------------------------------------------------
+// 的の種類と点数
+// ------------------------------------------------------------
+const targetEditList = document.getElementById("target-edit-list");
+let targetsCache = {};
+let targetCounter = 0;
+
+onValue(ref(db, "config/targets"), (snap) => {
+  targetsCache = snap.val() || {};
+  renderTargetEditList();
+});
+
+function renderTargetEditList() {
+  // 入力中の場合は再描画で編集内容が飛ばないよう、フォーカス中は更新をスキップ
+  if (targetEditList.contains(document.activeElement)) return;
+
+  targetEditList.innerHTML = "";
+  Object.entries(targetsCache).forEach(([key, t]) => {
+    targetEditList.appendChild(createTargetRow(key, t.name, t.points));
+  });
+}
+
+function createTargetRow(key, name, points) {
+  const row = document.createElement("div");
+  row.className = "target-edit-row";
+  row.dataset.key = key;
+  row.innerHTML = `
+    <input type="text" class="target-name-input" value="${name}" placeholder="的の名前">
+    <input type="number" class="target-points-input" value="${points}" min="1" step="1" placeholder="点数">
+    <button class="remove-target-btn">削除</button>
+  `;
+  row.querySelector(".remove-target-btn").addEventListener("click", () => row.remove());
+  return row;
+}
+
+document.getElementById("add-target-btn").addEventListener("click", () => {
+  targetCounter++;
+  const newKey = "target_new_" + Date.now() + "_" + targetCounter;
+  targetEditList.appendChild(createTargetRow(newKey, "", 10));
+});
+
+document.getElementById("save-targets-btn").addEventListener("click", async () => {
+  const rows = targetEditList.querySelectorAll(".target-edit-row");
+  const newTargets = {};
+  let valid = true;
+  rows.forEach((row, i) => {
+    const name = row.querySelector(".target-name-input").value.trim();
+    const points = Number(row.querySelector(".target-points-input").value);
+    if (!name || !points || points < 1) { valid = false; return; }
+    const key = "target" + (i + 1);
+    newTargets[key] = { name, points };
+  });
+  if (!valid) {
+    showToast("的の名前と点数(1以上)を正しく入力してください");
+    return;
+  }
+  // 既存のtargetsを丸ごと置き換える(削除された的も消える)
+  await set(ref(db, "config/targets"), newTargets);
+  showToast("的の設定を保存しました");
+});
+
+// ------------------------------------------------------------
+// 全体初期化
+// ------------------------------------------------------------
+document.getElementById("full-reset-btn").addEventListener("click", async () => {
+  if (!confirm("試合・得点・待ち人数をすべて初期化します。この操作は取り消せません。よろしいですか?")) return;
+  if (!confirm("本当によろしいですか? 現在の得点・待ち人数はすべて0にリセットされます。")) return;
+
+  await update(ref(db, "match"), {
+    status: "waiting",
+    startTime: 0,
+    score: { A: 0, B: 0 },
+    matchNumber: 1
+  });
+  await set(ref(db, "queue/count"), 0);
+  showToast("すべて初期化しました");
+});
+</script>
+</body>
+</html>

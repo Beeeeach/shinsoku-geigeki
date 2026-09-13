@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迅速迎撃 | スタッフ用リンク集</title>
+<style>
+  :root {
+    --od-black: #0d0f11;
+    --od-panel: #16191c;
+    --od-panel2: #1c2024;
+    --warn: #e8b339;
+    --danger: #c73838;
+    --text-dim: #8a9088;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--od-black);
+    color: #eceee9;
+    font-family: "Segoe UI", "Hiragino Sans", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* ---------- パスワード入力画面 ---------- */
+  #gate-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+  }
+  #gate-screen h1 {
+    font-size: 15px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  #password-input {
+    width: 100%;
+    padding: 14px;
+    background: var(--od-panel);
+    border: 2px solid #2a2f33;
+    border-radius: 6px;
+    color: #eceee9;
+    font-size: 16px;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+  #password-input:focus { outline: none; border-color: var(--warn); }
+  #enter-btn {
+    width: 100%;
+    padding: 14px;
+    background: #4a5240;
+    border: none;
+    border-radius: 6px;
+    color: #eceee9;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  #gate-error {
+    color: var(--danger);
+    font-size: 13px;
+    min-height: 18px;
+  }
+
+  /* ---------- リンク集画面 ---------- */
+  #links-screen {
+    display: none;
+    width: 100%;
+    max-width: 420px;
+    flex-direction: column;
+    gap: 14px;
+  }
+  #links-screen.active { display: flex; }
+
+  #links-screen h1 {
+    font-size: 15px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .link-card {
+    display: block;
+    background: var(--od-panel);
+    border: 1px solid #2a2f33;
+    border-left: 4px solid var(--warn);
+    border-radius: 6px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: #eceee9;
+    transition: 0.2s;
+  }
+  .link-card:hover {
+    background: var(--od-panel2);
+    border-left-color: #f0c04a;
+  }
+  .link-card .link-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .link-card .link-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .back-link {
+    text-align: center;
+    margin-top: 8px;
+  }
+  .back-link a {
+    color: var(--text-dim);
+    font-size: 13px;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<!-- パスワード入力画面 -->
+<div id="gate-screen">
+  <h1>スタッフ用リンク集<br>合言葉を入力してください</h1>
+  <input id="password-input" type="password" placeholder="合言葉" autocomplete="off">
+  <button id="enter-btn">開く</button>
+  <div id="gate-error"></div>
+</div>
+
+<!-- リンク集画面 -->
+<div id="links-screen">
+  <h1>迅速迎撃 スタッフ用リンク集</h1>
+
+  <a class="link-card" href="../owner/index.html">
+    <div class="link-title">オーナーコンソール</div>
+    <div class="link-desc">試合ルール・チーム名・的の設定などを変更する</div>
+  </a>
+
+  <a class="link-card" href="../staff-score/index.html">
+    <div class="link-title">得点管理コンソール</div>
+    <div class="link-desc">試合の開始・的の命中記録・得点の手動調整</div>
+  </a>
+
+  <a class="link-card" href="../staff-queue/index.html">
+    <div class="link-title">受付コンソール</div>
+    <div class="link-desc">待ち人数の更新</div>
+  </a>
+
+  <a class="link-card" href="../board/index.html">
+    <div class="link-title">黒板投影用スコアボード</div>
+    <div class="link-desc">ログイン不要、投影用PCで開く</div>
+  </a>
+
+  <div class="back-link">
+    <a href="../index.html">← トップページに戻る</a>
+  </div>
+</div>
+
+<script>
+  // ------------------------------------------------------------
+  // 簡易的な合言葉チェック(本格的な認証ではありません)
+  // 各管理ページ自体には別途 Firebase の role 認証があるため、
+  // ここでの目的はあくまで「一般来場者が誤って踏まない」ための目隠しです。
+  // ------------------------------------------------------------
+  const STAFF_PASSWORD = "geigeki2026"; // 必要に応じてここを書き換えてください
+
+  const gateScreen = document.getElementById("gate-screen");
+  const linksScreen = document.getElementById("links-screen");
+  const passwordInput = document.getElementById("password-input");
+  const enterBtn = document.getElementById("enter-btn");
+  const gateError = document.getElementById("gate-error");
+
+  function tryEnter() {
+    if (passwordInput.value === STAFF_PASSWORD) {
+      gateScreen.style.display = "none";
+      linksScreen.classList.add("active");
+      // タブを閉じるまでの間だけ再入力を省略できるようにする
+      sessionStorage.setItem("staffLinksUnlocked", "1");
+    } else {
+      gateError.textContent = "合言葉が正しくありません。";
+    }
+  }
+
+  enterBtn.addEventListener("click", tryEnter);
+  passwordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryEnter();
+  });
+
+  // 同一タブ内であれば再入力不要にする(タブを閉じるとリセットされる)
+  if (sessionStorage.getItem("staffLinksUnlocked") === "1") {
+    gateScreen.style.display = "none";
+    linksScreen.classList.add("active");
+  }
+</script>
+</body>
+</html>
