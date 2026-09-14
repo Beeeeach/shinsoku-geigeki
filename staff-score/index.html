@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>迅速迎撃 | 得点管理コンソール</title>
+<title>神速の迎撃戦線 | 得点管理コンソール</title>
 <style>
   :root {
     --od-black: #14171a;
@@ -109,6 +109,46 @@
     color: var(--text-dim);
     margin-bottom: 12px;
     text-transform: uppercase;
+  }
+
+  /* 元に戻すバー(画面上部固定・常時表示) */
+  .undo-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--od-panel2);
+    border: 1px solid #3a3f43;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .undo-bar .undo-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .undo-bar .undo-desc.empty { color: #565b58; }
+  #undo-btn {
+    flex-shrink: 0;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--warn);
+    color: #2a2000;
+  }
+  #undo-btn:disabled {
+    background: #33373a;
+    color: var(--text-dim);
   }
 
   /* 試合ステータス */
@@ -228,12 +268,18 @@
 <body>
 
 <div class="status-bar">
-  <span>迅速迎撃 <span class="role-tag">得点管理コンソール</span></span>
+  <span>神速の迎撃戦線 <span class="role-tag">得点管理コンソール</span></span>
   <a href="../staff-links/index.html" style="color:var(--text-dim);font-size:12px;text-decoration:underline;">スタッフリンク集に戻る</a>
 </div>
 
 <!-- メイン画面 -->
 <div id="main-screen" class="active">
+
+  <!-- 元に戻すバー: 得点操作を1手だけ取り消せる -->
+  <div class="undo-bar">
+    <span class="undo-desc empty" id="undo-desc">取り消せる操作はありません</span>
+    <button id="undo-btn" disabled>元に戻す</button>
+  </div>
 
   <div class="panel">
     <h2>試合コントロール</h2>
@@ -300,6 +346,8 @@ const teamANameEl = document.getElementById("team-a-name");
 const teamBNameEl = document.getElementById("team-b-name");
 const targetListEl = document.getElementById("target-list");
 const toast = document.getElementById("toast");
+const undoBtn = document.getElementById("undo-btn");
+const undoDescEl = document.getElementById("undo-desc");
 
 let matchDuration = 120;
 let startTime = 0;
@@ -311,6 +359,39 @@ function showToast(msg) {
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 1500);
 }
+
+// ------------------------------------------------------------
+// 直前操作の取り消し(Undo)機構
+// 得点に影響する操作(±1調整・的の命中記録)を1手だけ記録し、
+// 押し間違えた際にすぐ元に戻せるようにする。
+// 「試合開始」「次の試合へ」などの試合進行操作は対象外
+// (別の確認ダイアログで保護されているため)。
+// ------------------------------------------------------------
+let lastAction = null; // { team, delta, description }
+
+function pushUndo(team, delta, description) {
+  lastAction = { team, delta, description };
+  undoBtn.disabled = false;
+  undoDescEl.classList.remove("empty");
+  undoDescEl.textContent = `直前の操作: ${description}`;
+}
+
+function clearUndo() {
+  lastAction = null;
+  undoBtn.disabled = true;
+  undoDescEl.classList.add("empty");
+  undoDescEl.textContent = "取り消せる操作はありません";
+}
+
+undoBtn.addEventListener("click", () => {
+  if (!lastAction) return;
+  const { team, delta } = lastAction;
+  const scoreRef = ref(db, `match/score/${team}`);
+  // 加算した分をそのまま差し引く(0未満にはしない)
+  runTransaction(scoreRef, (current) => Math.max(0, (current || 0) - delta));
+  showToast(`「${lastAction.description}」を取り消しました`);
+  clearUndo();
+});
 
 // ------------------------------------------------------------
 // config(チーム名・的・試合時間)の購読
@@ -351,7 +432,9 @@ targetListEl.addEventListener("click", (e) => {
   const points = Number(btn.dataset.points);
   const scoreRef = ref(db, `match/score/${team}`);
   runTransaction(scoreRef, (current) => (current || 0) + points);
-  showToast(`${team === "A" ? teamANameEl.textContent : teamBNameEl.textContent} に ${points}点`);
+  const teamLabel = team === "A" ? teamANameEl.textContent : teamBNameEl.textContent;
+  showToast(`${teamLabel} に ${points}点`);
+  pushUndo(team, points, `${teamLabel} に ${points}点`);
 });
 
 // ------------------------------------------------------------
@@ -363,6 +446,9 @@ document.querySelectorAll(".adjust-row button").forEach((btn) => {
     const delta = Number(btn.dataset.delta);
     const scoreRef = ref(db, `match/score/${team}`);
     runTransaction(scoreRef, (current) => Math.max(0, (current || 0) + delta));
+    const teamLabel = team === "A" ? teamANameEl.textContent : teamBNameEl.textContent;
+    const sign = delta > 0 ? "+" : "";
+    pushUndo(team, delta, `${teamLabel} を ${sign}${delta}点 手動調整`);
   });
 });
 
@@ -429,6 +515,8 @@ nextMatchBtn.addEventListener("click", () => {
     score: { A: 0, B: 0 },
     matchNumber: currentMatchNumber + 1
   });
+  // 試合を切り替えたら、直前の得点操作を取り消す意味がなくなるためクリア
+  clearUndo();
 });
 </script>
 </body>
