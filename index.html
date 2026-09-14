@@ -919,7 +919,7 @@ section {
     gap: 8px;
 }
 
-.player-access-buttons a {
+.player-access-buttons .player-access-btn {
     display: block;
     padding: 12px 4px;
     background: rgba(100, 220, 255, 0.08);
@@ -930,12 +930,9 @@ section {
     font-weight: bold;
     letter-spacing: 0.05em;
     transition: 0.25s;
-}
-
-.player-access-buttons a:hover {
-    background: rgba(100, 220, 255, 0.2);
-    border-color: #65d8ff;
-    box-shadow: 0 0 15px rgba(100, 220, 255, 0.25);
+    /* リンクを廃止したため、見た目は維持しつつクリック演出は無効化 */
+    cursor: default;
+    user-select: none;
 }
 
 @media (max-width: 800px) {
@@ -1607,20 +1604,20 @@ footer {
             <div class="player-access-team">
                 <div class="player-access-team-label team-a-label">TEAM A</div>
                 <div class="player-access-buttons">
-                    <a href="./player/index.html?id=teamA-1">1番</a>
-                    <a href="./player/index.html?id=teamA-2">2番</a>
-                    <a href="./player/index.html?id=teamA-3">3番</a>
-                    <a href="./player/index.html?id=teamA-4">4番</a>
+                    <span class="player-access-btn">1番</span>
+                    <span class="player-access-btn">2番</span>
+                    <span class="player-access-btn">3番</span>
+                    <span class="player-access-btn">4番</span>
                 </div>
             </div>
 
             <div class="player-access-team">
                 <div class="player-access-team-label team-b-label">TEAM B</div>
                 <div class="player-access-buttons">
-                    <a href="./player/index.html?id=teamB-1">1番</a>
-                    <a href="./player/index.html?id=teamB-2">2番</a>
-                    <a href="./player/index.html?id=teamB-3">3番</a>
-                    <a href="./player/index.html?id=teamB-4">4番</a>
+                    <span class="player-access-btn">1番</span>
+                    <span class="player-access-btn">2番</span>
+                    <span class="player-access-btn">3番</span>
+                    <span class="player-access-btn">4番</span>
                 </div>
             </div>
 
