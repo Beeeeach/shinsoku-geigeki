@@ -120,10 +120,99 @@
     color: var(--text-dim);
   }
 
+  /* ---------- 選手名一覧 ---------- */
+  .roster {
+    margin-top: 2.2vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6vh;
+  }
+  .roster .roster-item {
+    font-size: 1.35vw;
+    letter-spacing: 0.05em;
+    color: #d7dbd6;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 0.6vh 0.5vw;
+  }
+  .roster .roster-item.empty {
+    color: var(--text-dim);
+    opacity: 0.6;
+  }
+
   /* フッターは待ち人数表示の廃止に伴い、下部の余白として残す */
   footer {
     flex-shrink: 0;
     padding: 4vh 0;
+  }
+
+  /* ---------- 撃破・被弾演出(黒板投影用: 派手に大画面表示) ---------- */
+  #event-popup {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(0,0,0,0);
+    transition: opacity 0.2s, background 0.2s;
+  }
+  #event-popup.show { opacity: 1; }
+  #event-popup .popup-card {
+    text-align: center;
+    padding: 4vh 6vw;
+    border-radius: 26px;
+    transform: scale(0.6) rotate(-3deg);
+    transition: transform 0.3s cubic-bezier(.2,1.4,.5,1);
+  }
+  #event-popup.show .popup-card {
+    transform: scale(1) rotate(0deg);
+  }
+  #event-popup .popup-label {
+    font-size: 1.8vw;
+    letter-spacing: 0.3em;
+    margin-bottom: 1.4vh;
+    opacity: 0.9;
+  }
+  #event-popup .popup-main {
+    font-size: 4.2vw;
+    font-weight: 900;
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 30px rgba(0,0,0,0.5);
+  }
+
+  #event-popup.hit-a { background: rgba(224, 74, 74, 0.3); }
+  #event-popup.hit-a .popup-card {
+    background: linear-gradient(160deg, var(--team-a), #6e1c1c);
+    box-shadow: 0 0 100px rgba(224,74,74,0.8);
+    animation: board-shake 0.4s;
+  }
+  #event-popup.hit-b { background: rgba(74, 144, 214, 0.3); }
+  #event-popup.hit-b .popup-card {
+    background: linear-gradient(160deg, var(--team-b), #1c3f61);
+    box-shadow: 0 0 100px rgba(74,144,214,0.8);
+    animation: board-shake 0.4s;
+  }
+  #event-popup.target-a { background: rgba(224, 74, 74, 0.2); }
+  #event-popup.target-a .popup-card {
+    background: linear-gradient(160deg, #e04a4a, #8a2a2a);
+    box-shadow: 0 0 100px rgba(224,74,74,0.7);
+  }
+  #event-popup.target-b { background: rgba(74, 144, 214, 0.2); }
+  #event-popup.target-b .popup-card {
+    background: linear-gradient(160deg, #4a90d6, #23517d);
+    box-shadow: 0 0 100px rgba(74,144,214,0.7);
+  }
+
+  @keyframes board-shake {
+    0%, 100% { transform: scale(1) translateX(0) rotate(0deg); }
+    20% { transform: scale(1.03) translateX(-14px) rotate(-2deg); }
+    40% { transform: scale(1.03) translateX(14px) rotate(2deg); }
+    60% { transform: scale(1.03) translateX(-10px) rotate(-1.2deg); }
+    80% { transform: scale(1.03) translateX(10px) rotate(1.2deg); }
   }
 
   /* 得点更新時のフラッシュ演出 */
@@ -153,15 +242,25 @@
   <div class="team-box a" id="team-box-a">
     <div class="team-name" id="team-a-name">チームA</div>
     <div class="team-score" id="score-a">0</div>
+    <div class="roster" id="roster-a"></div>
   </div>
   <div class="vs-divider">VS</div>
   <div class="team-box b" id="team-box-b">
     <div class="team-name" id="team-b-name">チームB</div>
     <div class="team-score" id="score-b">0</div>
+    <div class="roster" id="roster-b"></div>
   </div>
 </div>
 
 <footer></footer>
+
+<!-- 撃破・被弾演出ポップアップ(黒板投影用) -->
+<div id="event-popup">
+  <div class="popup-card">
+    <div class="popup-label" id="popup-label">BREAKING</div>
+    <div class="popup-main" id="popup-main"></div>
+  </div>
+</div>
 
 <script type="module">
 import { db, ref, onValue } from "../shared/firebase-config.js";
@@ -175,12 +274,24 @@ const teamANameEl = document.getElementById("team-a-name");
 const teamBNameEl = document.getElementById("team-b-name");
 const teamBoxA = document.getElementById("team-box-a");
 const teamBoxB = document.getElementById("team-box-b");
+const rosterA = document.getElementById("roster-a");
+const rosterB = document.getElementById("roster-b");
+const eventPopup = document.getElementById("event-popup");
+const popupLabel = document.getElementById("popup-label");
+const popupMain = document.getElementById("popup-main");
 
 let matchDuration = 120;
 let startTime = 0;
 let currentStatus = "waiting";
 let prevScoreA = 0;
 let prevScoreB = 0;
+let lastSeenEventTs = 0;
+let eventsInitialized = false;
+let popupHideTimer = null;
+
+// 端末ID一覧(players/teamX-N/name を購読して一覧表示する)
+const UNIT_IDS_A = ["teamA-1", "teamA-2", "teamA-3", "teamA-4"];
+const UNIT_IDS_B = ["teamB-1", "teamB-2", "teamB-3", "teamB-4"];
 
 // ------------------------------------------------------------
 // config の購読
@@ -250,6 +361,74 @@ onValue(ref(db, "match/score"), (snap) => {
     void teamBoxB.offsetWidth;
     teamBoxB.classList.add("flash");
     prevScoreB = newB;
+  }
+});
+
+// ------------------------------------------------------------
+// 選手名一覧の購読・表示
+// 各端末(players/teamX-N/name)を個別に購読し、一覧を再描画する
+// ------------------------------------------------------------
+function setupRoster(unitIds, rosterEl) {
+  const names = {}; // unitId -> name
+  unitIds.forEach((unitId) => {
+    onValue(ref(db, `players/${unitId}/name`), (snap) => {
+      names[unitId] = snap.val() || "";
+      renderRoster();
+    });
+  });
+  function renderRoster() {
+    rosterEl.innerHTML = "";
+    unitIds.forEach((unitId) => {
+      const name = names[unitId];
+      const item = document.createElement("div");
+      item.className = "roster-item" + (name ? "" : " empty");
+      item.textContent = name ? name : "(待機中)";
+      rosterEl.appendChild(item);
+    });
+  }
+}
+setupRoster(UNIT_IDS_A, rosterA);
+setupRoster(UNIT_IDS_B, rosterB);
+
+// ------------------------------------------------------------
+// 撃破・被弾演出ポップアップの表示(黒板投影・派手めに)
+// ------------------------------------------------------------
+function showPopup(className, label, mainText, duration = 2600) {
+  clearTimeout(popupHideTimer);
+  eventPopup.className = "";
+  void eventPopup.offsetWidth; // reflow
+  eventPopup.classList.add(className, "show");
+  popupLabel.textContent = label;
+  popupMain.textContent = mainText;
+  popupHideTimer = setTimeout(() => {
+    eventPopup.classList.remove("show");
+  }, duration);
+}
+
+// ------------------------------------------------------------
+// events/latest の購読: プレイヤー撃破・的破壊のイベントをボードにも表示
+// ------------------------------------------------------------
+onValue(ref(db, "events/latest"), (snap) => {
+  const ev = snap.val();
+  if (!ev || !ev.clientTs) return;
+
+  // 初回購読時は、ページを開く前からある古いイベントを演出表示しない
+  if (!eventsInitialized) {
+    eventsInitialized = true;
+    lastSeenEventTs = ev.clientTs;
+    return;
+  }
+
+  if (ev.clientTs <= lastSeenEventTs) return;
+  lastSeenEventTs = ev.clientTs;
+
+  if (ev.type === "playerHit") {
+    const victimTeamLabel = ev.victimTeam === "A" ? teamANameEl.textContent : teamBNameEl.textContent;
+    const cls = ev.victimTeam === "A" ? "hit-a" : "hit-b";
+    showPopup(cls, "TAKEDOWN", `${victimTeamLabel}の${ev.victimName}が撃たれた!`);
+  } else if (ev.type === "targetHit") {
+    const cls = ev.team === "A" ? "target-a" : "target-b";
+    showPopup(cls, "TARGET DESTROYED", `${ev.teamName}が${ev.targetName}を撃破! (+${ev.points}点)`);
   }
 });
 </script>
