@@ -329,7 +329,7 @@
 
 <script type="module">
 import {
-  db, ref, onValue, set, update, runTransaction, requireStaffGate
+  db, ref, onValue, set, update, runTransaction, requireStaffGate, serverTimestamp
 } from "../shared/firebase-config.js";
 
 // staff-links の合言葉ゲートを通過していなければリダイレクト
@@ -430,11 +430,24 @@ targetListEl.addEventListener("click", (e) => {
   if (!btn) return;
   const team = btn.dataset.team;
   const points = Number(btn.dataset.points);
+  const targetName = btn.closest(".target-row").querySelector(".target-info").firstChild.textContent.trim();
   const scoreRef = ref(db, `match/score/${team}`);
   runTransaction(scoreRef, (current) => (current || 0) + points);
   const teamLabel = team === "A" ? teamANameEl.textContent : teamBNameEl.textContent;
   showToast(`${teamLabel} に ${points}点`);
   pushUndo(team, points, `${teamLabel} に ${points}点`);
+
+  // 演出用イベントを発行(ボード・プレイヤー端末が購読して撃破演出を表示する)
+  // clientTs は購読側で「新しいイベントかどうか」を判定するための一意な値
+  set(ref(db, "events/latest"), {
+    type: "targetHit",
+    team: team,
+    teamName: teamLabel,
+    targetName: targetName,
+    points: points,
+    ts: serverTimestamp(),
+    clientTs: Date.now()
+  });
 });
 
 // ------------------------------------------------------------
