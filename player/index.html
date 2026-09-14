@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>迅速迎撃 | プレイヤー端末</title>
+<title>神速の迎撃戦線 | プレイヤー端末</title>
 <style>
   :root {
     --od-black: #14171a;
@@ -219,7 +219,7 @@
 <body>
 
 <div class="status-bar">
-  <span>迅速迎撃 SUPPORT UNIT</span>
+  <span>神速の迎撃戦線 SUPPORT UNIT</span>
   <span class="unit-tag" id="unit-tag">--</span>
 </div>
 
@@ -301,6 +301,7 @@ const teamBLabelEl = document.getElementById("team-b-label");
 let currentMatchStatus = "waiting";
 let matchDuration = 120;
 let startTime = 0;
+let hitPoints = 1; // オーナーコンソールで設定された「被弾時の得点」(未取得時は1点)
 let timerInterval = null;
 
 // ------------------------------------------------------------
@@ -345,7 +346,7 @@ renameBtn.addEventListener("click", () => {
 });
 
 // ------------------------------------------------------------
-// config(チーム名・試合時間)の購読
+// config(チーム名・試合時間・被弾時の得点)の購読
 // ------------------------------------------------------------
 onValue(ref(db, "config/teamNames"), (snap) => {
   const names = snap.val();
@@ -357,6 +358,11 @@ onValue(ref(db, "config/teamNames"), (snap) => {
 
 onValue(ref(db, "config/matchDuration"), (snap) => {
   if (snap.val()) matchDuration = snap.val();
+});
+
+onValue(ref(db, "config/hitPoints"), (snap) => {
+  const val = snap.val();
+  hitPoints = (val === null || val === undefined || val < 1) ? 1 : val;
 });
 
 // ------------------------------------------------------------
@@ -413,7 +419,8 @@ onValue(ref(db, "match/score"), (snap) => {
 });
 
 // ------------------------------------------------------------
-// 「撃たれた!」ボタン: 相手チームの得点に+加算(トランザクション)
+// 「撃たれた!」ボタン: 相手チームの得点に加算(トランザクション)
+// 加算量はオーナーコンソールで設定された config/hitPoints を使用
 // ------------------------------------------------------------
 hitButton.addEventListener("click", () => {
   if (currentMatchStatus !== "playing") return;
@@ -424,7 +431,7 @@ hitButton.addEventListener("click", () => {
   }, 600); // 連打防止のクールダウン
 
   const scoreRef = ref(db, `match/score/${opponentTeam}`);
-  runTransaction(scoreRef, (current) => (current || 0) + 1);
+  runTransaction(scoreRef, (current) => (current || 0) + hitPoints);
 
   // 視覚フィードバック
   flash.classList.add("show");
