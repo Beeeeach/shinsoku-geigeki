@@ -214,6 +214,93 @@
   }
   .score-footer .team.a .score { color: var(--team-a); }
   .score-footer .team.b .score { color: var(--team-b); }
+
+  /* ---------- 撃破・被弾演出ポップアップ ---------- */
+  #event-popup {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(0,0,0,0);
+    transition: opacity 0.15s, background 0.15s;
+  }
+  #event-popup.show {
+    opacity: 1;
+  }
+  #event-popup .popup-card {
+    text-align: center;
+    padding: 28px 20px;
+    border-radius: 18px;
+    max-width: 88vw;
+    transform: scale(0.7) rotate(-2deg);
+    transition: transform 0.25s cubic-bezier(.2,1.4,.5,1);
+  }
+  #event-popup.show .popup-card {
+    transform: scale(1) rotate(0deg);
+  }
+  #event-popup .popup-label {
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    margin-bottom: 10px;
+    opacity: 0.85;
+  }
+  #event-popup .popup-main {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 18px rgba(0,0,0,0.4);
+  }
+
+  /* 「自分がやられた」= 強い警告演出(赤・大きく揺れる) */
+  #event-popup.self-hit {
+    background: rgba(199, 56, 56, 0.35);
+  }
+  #event-popup.self-hit .popup-card {
+    background: linear-gradient(160deg, #c73838, #6e1c1c);
+    box-shadow: 0 0 60px rgba(199,56,56,0.7);
+    animation: shake 0.4s;
+  }
+
+  /* 「味方が命中させた」= 派手な称賛演出(warn色・輝く) */
+  #event-popup.ally-hit {
+    background: rgba(232, 179, 57, 0.25);
+  }
+  #event-popup.ally-hit .popup-card {
+    background: linear-gradient(160deg, #e8b339, #91621d);
+    box-shadow: 0 0 60px rgba(232,179,57,0.7);
+  }
+
+  /* 的破壊: 自チームの戦果 */
+  #event-popup.target-win {
+    background: rgba(125, 196, 125, 0.25);
+  }
+  #event-popup.target-win .popup-card {
+    background: linear-gradient(160deg, #3f9b46, #1f5a24);
+    box-shadow: 0 0 60px rgba(125,196,125,0.7);
+  }
+
+  /* 的破壊: 敵チームにやられた */
+  #event-popup.target-lose {
+    background: rgba(59, 127, 196, 0.25);
+  }
+  #event-popup.target-lose .popup-card {
+    background: linear-gradient(160deg, #3b7fc4, #1c3f61);
+    box-shadow: 0 0 60px rgba(59,127,196,0.7);
+    animation: shake 0.4s;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: scale(1) translateX(0) rotate(0deg); }
+    20% { transform: scale(1.02) translateX(-8px) rotate(-1.5deg); }
+    40% { transform: scale(1.02) translateX(8px) rotate(1.5deg); }
+    60% { transform: scale(1.02) translateX(-6px) rotate(-1deg); }
+    80% { transform: scale(1.02) translateX(6px) rotate(1deg); }
+  }
 </style>
 </head>
 <body>
@@ -258,9 +345,17 @@
 
 <div class="feedback-flash" id="flash"></div>
 
+<!-- 撃破・被弾演出ポップアップ -->
+<div id="event-popup">
+  <div class="popup-card">
+    <div class="popup-label" id="popup-label">BREAKING</div>
+    <div class="popup-main" id="popup-main"></div>
+  </div>
+</div>
+
 <script type="module">
 import {
-  db, ref, onValue, set, runTransaction
+  db, ref, onValue, set, runTransaction, serverTimestamp
 } from "../shared/firebase-config.js";
 
 // ------------------------------------------------------------
@@ -297,12 +392,19 @@ const scoreAEl = document.getElementById("score-a");
 const scoreBEl = document.getElementById("score-b");
 const teamALabelEl = document.getElementById("team-a-label");
 const teamBLabelEl = document.getElementById("team-b-label");
+const eventPopup = document.getElementById("event-popup");
+const popupLabel = document.getElementById("popup-label");
+const popupMain = document.getElementById("popup-main");
 
 let currentMatchStatus = "waiting";
 let matchDuration = 120;
 let startTime = 0;
 let hitPoints = 1; // オーナーコンソールで設定された「被弾時の得点」(未取得時は1点)
 let timerInterval = null;
+let myName = ""; // 自分のニックネーム(被弾演出の判定に使用)
+let lastSeenEventTs = 0; // 既読済みイベントのタイムスタンプ(重複表示防止)
+let eventsInitialized = false; // 初回購読時に過去のイベントを演出表示しないためのフラグ
+let popupHideTimer = null;
 
 // ------------------------------------------------------------
 // 初期化: このバージョンでは認証を行いません
@@ -317,10 +419,12 @@ const playerNameRef = ref(db, `players/${unitId}/name`);
 onValue(playerNameRef, (snapshot) => {
   const name = snapshot.val();
   if (name) {
+    myName = name;
     callsignDisplay.textContent = name;
     nameScreen.style.display = "none";
     gameScreen.classList.add("active");
   } else {
+    myName = "";
     nameScreen.style.display = "flex";
     gameScreen.classList.remove("active");
   }
@@ -433,10 +537,93 @@ hitButton.addEventListener("click", () => {
   const scoreRef = ref(db, `match/score/${opponentTeam}`);
   runTransaction(scoreRef, (current) => (current || 0) + hitPoints);
 
-  // 視覚フィードバック
+  // 視覚フィードバック(自分の端末のみのフラッシュ)
   flash.classList.add("show");
   if (navigator.vibrate) navigator.vibrate(80);
   setTimeout(() => flash.classList.remove("show"), 150);
+
+  // 全端末・ボードへ演出イベントを配信
+  // 「撃たれた」= 自分(myTeam側)がやられた、得点は相手(opponentTeam)に入る
+  set(ref(db, "events/latest"), {
+    type: "playerHit",
+    victimTeam: myTeam,
+    victimName: myName || unitId,
+    scoringTeam: opponentTeam,
+    ts: serverTimestamp(),
+    clientTs: Date.now()
+  });
+});
+
+// ------------------------------------------------------------
+// 演出ポップアップの表示
+// ------------------------------------------------------------
+function showPopup(className, label, mainText, duration = 2200) {
+  clearTimeout(popupHideTimer);
+  eventPopup.className = ""; // 前回のクラスをリセット
+  void eventPopup.offsetWidth; // reflow
+  eventPopup.classList.add(className, "show");
+  popupLabel.textContent = label;
+  popupMain.textContent = mainText;
+  if (navigator.vibrate) navigator.vibrate(className === "self-hit" || className === "target-lose" ? [60, 40, 120] : 100);
+  popupHideTimer = setTimeout(() => {
+    eventPopup.classList.remove("show");
+  }, duration);
+}
+
+// ------------------------------------------------------------
+// events/latest の購読: 全端末・ボードで演出を同期して表示する
+// 自分の視点(myTeam)によって表示するメッセージ・演出色を出し分ける
+// ------------------------------------------------------------
+onValue(ref(db, "events/latest"), (snap) => {
+  const ev = snap.val();
+  if (!ev || !ev.clientTs) return;
+
+  // 初回購読時は、ページを開く前からある古いイベントを演出表示しない
+  if (!eventsInitialized) {
+    eventsInitialized = true;
+    lastSeenEventTs = ev.clientTs;
+    return;
+  }
+
+  if (ev.clientTs <= lastSeenEventTs) return; // 既読済み(重複表示防止)
+  lastSeenEventTs = ev.clientTs;
+
+  if (ev.type === "playerHit") {
+    const victimTeamLabel = ev.victimTeam === "A" ? teamALabelEl.textContent : teamBLabelEl.textContent;
+    if (ev.victimTeam === myTeam) {
+      // 自チームがやられた(自分自身かどうかは名前で判定してより煽る)
+      const isMe = ev.victimName === myName;
+      showPopup(
+        "self-hit",
+        isMe ? "WARNING" : "TEAM DOWN",
+        isMe
+          ? `${victimTeamLabel}の${ev.victimName}が撃たれた!`
+          : `${victimTeamLabel}の${ev.victimName}が撃たれた!`
+      );
+    } else {
+      // 相手チームを撃破した(自分たちの得点)
+      showPopup(
+        "ally-hit",
+        "HIT CONFIRMED",
+        `${victimTeamLabel}の${ev.victimName}を撃破!`
+      );
+    }
+  } else if (ev.type === "targetHit") {
+    const scoringTeamLabel = ev.teamName;
+    if (ev.team === myTeam) {
+      showPopup(
+        "target-win",
+        "TARGET DESTROYED",
+        `${scoringTeamLabel}が${ev.targetName}を撃破! (+${ev.points}点)`
+      );
+    } else {
+      showPopup(
+        "target-lose",
+        "ENEMY SCORED",
+        `${scoringTeamLabel}が${ev.targetName}を撃破!`
+      );
+    }
+  }
 });
 </script>
 </body>
