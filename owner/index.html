@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>迅速迎撃 | オーナーコンソール</title>
+<title>神速の迎撃戦線 | オーナーコンソール</title>
 <style>
   :root {
     --od-black: #14171a;
@@ -127,6 +127,12 @@
     min-width: 0;
   }
   .field-row .unit { font-size: 13px; color: var(--text-dim); flex-shrink: 0; }
+  .field-hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: -6px 0 12px;
+    line-height: 1.5;
+  }
 
   .target-edit-row {
     display: flex;
@@ -215,7 +221,7 @@
 <body>
 
 <div class="status-bar">
-  <span>迅速迎撃 <span class="role-tag">オーナーコンソール</span></span>
+  <span>神速の迎撃戦線 <span class="role-tag">オーナーコンソール</span></span>
   <a href="../staff-links/index.html" style="color:var(--text-dim);font-size:12px;text-decoration:underline;">スタッフリンク集に戻る</a>
 </div>
 
@@ -234,6 +240,12 @@
       <input type="number" id="wait-time-input" min="1" step="1">
       <span class="unit">秒 / 人</span>
     </div>
+    <div class="field-row">
+      <label for="hit-points-input">被弾時の得点</label>
+      <input type="number" id="hit-points-input" min="1" step="1">
+      <span class="unit">点</span>
+    </div>
+    <div class="field-hint">プレイヤーが「撃たれた!」を押した際に相手チームへ加算される点数です。</div>
     <button class="save-btn" id="save-rules-btn">試合ルールを保存</button>
   </div>
 
@@ -283,10 +295,11 @@ function showToast(msg) {
 }
 
 // ------------------------------------------------------------
-// 試合ルール(試合時間・待ち時間換算)
+// 試合ルール(試合時間・待ち時間換算・被弾時の得点)
 // ------------------------------------------------------------
 const matchDurationInput = document.getElementById("match-duration-input");
 const waitTimeInput = document.getElementById("wait-time-input");
+const hitPointsInput = document.getElementById("hit-points-input");
 
 onValue(ref(db, "config/matchDuration"), (snap) => {
   if (snap.val() && document.activeElement !== matchDurationInput) {
@@ -298,15 +311,25 @@ onValue(ref(db, "config/waitTimePerPerson"), (snap) => {
     waitTimeInput.value = snap.val();
   }
 });
+onValue(ref(db, "config/hitPoints"), (snap) => {
+  // 未設定時はデフォルト1点として扱う
+  const val = snap.val();
+  if (document.activeElement !== hitPointsInput) {
+    hitPointsInput.value = (val === null || val === undefined) ? 1 : val;
+  }
+});
 
 document.getElementById("save-rules-btn").addEventListener("click", async () => {
   const duration = Number(matchDurationInput.value);
   const waitTime = Number(waitTimeInput.value);
+  const hitPoints = Number(hitPointsInput.value);
   if (!duration || duration < 10) { showToast("試合時間は10秒以上で入力してください"); return; }
   if (!waitTime || waitTime < 1) { showToast("待ち時間換算は1秒以上で入力してください"); return; }
+  if (!hitPoints || hitPoints < 1) { showToast("被弾時の得点は1点以上で入力してください"); return; }
   await update(ref(db, "config"), {
     matchDuration: duration,
-    waitTimePerPerson: waitTime
+    waitTimePerPerson: waitTime,
+    hitPoints: hitPoints
   });
   showToast("試合ルールを保存しました");
 });
