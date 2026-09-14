@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>迅速迎撃 | スコアボード</title>
+<title>神速の迎撃戦線 | スコアボード</title>
 <style>
   :root {
     --od-black: #0d0f11;
@@ -120,28 +120,10 @@
     color: var(--text-dim);
   }
 
-  /* ---------- フッター(待ち人数) ---------- */
+  /* フッターは待ち人数表示の廃止に伴い、下部の余白として残す */
   footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2vw;
-    padding: 2vh 0 3vh;
     flex-shrink: 0;
-  }
-  footer .queue-label {
-    font-size: 1.8vw;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-  }
-  footer .queue-count {
-    font-size: 3vw;
-    font-weight: 900;
-    color: var(--warn);
-  }
-  footer .queue-eta {
-    font-size: 1.6vw;
-    color: var(--text-dim);
+    padding: 4vh 0;
   }
 
   /* 得点更新時のフラッシュ演出 */
@@ -158,7 +140,7 @@
 <body>
 
 <header>
-  <span class="title">迅速迎撃 SCOREBOARD</span>
+  <span class="title">神速の迎撃戦線 SCOREBOARD</span>
   <span class="match-number" id="match-number">第1試合</span>
 </header>
 
@@ -179,11 +161,7 @@
   </div>
 </div>
 
-<footer>
-  <span class="queue-label">現在の待ち人数</span>
-  <span class="queue-count" id="queue-count">0</span>
-  <span class="queue-eta" id="queue-eta">(目安 0分0秒)</span>
-</footer>
+<footer></footer>
 
 <script type="module">
 import { db, ref, onValue } from "../shared/firebase-config.js";
@@ -197,11 +175,8 @@ const teamANameEl = document.getElementById("team-a-name");
 const teamBNameEl = document.getElementById("team-b-name");
 const teamBoxA = document.getElementById("team-box-a");
 const teamBoxB = document.getElementById("team-box-b");
-const queueCountEl = document.getElementById("queue-count");
-const queueEtaEl = document.getElementById("queue-eta");
 
 let matchDuration = 120;
-let waitTimePerPerson = 30;
 let startTime = 0;
 let currentStatus = "waiting";
 let prevScoreA = 0;
@@ -220,13 +195,6 @@ onValue(ref(db, "config/teamNames"), (snap) => {
 
 onValue(ref(db, "config/matchDuration"), (snap) => {
   if (snap.val()) matchDuration = snap.val();
-});
-
-onValue(ref(db, "config/waitTimePerPerson"), (snap) => {
-  if (snap.val()) {
-    waitTimePerPerson = snap.val();
-    updateEtaDisplay();
-  }
 });
 
 // ------------------------------------------------------------
@@ -284,23 +252,6 @@ onValue(ref(db, "match/score"), (snap) => {
     prevScoreB = newB;
   }
 });
-
-// ------------------------------------------------------------
-// 待ち人数
-// ------------------------------------------------------------
-let currentQueueCount = 0;
-onValue(ref(db, "queue/count"), (snap) => {
-  currentQueueCount = snap.val() || 0;
-  queueCountEl.textContent = currentQueueCount;
-  updateEtaDisplay();
-});
-
-function updateEtaDisplay() {
-  const totalSeconds = currentQueueCount * waitTimePerPerson;
-  const min = Math.floor(totalSeconds / 60);
-  const sec = totalSeconds % 60;
-  queueEtaEl.textContent = `(目安 ${min}分${sec}秒)`;
-}
 </script>
 </body>
 </html>
